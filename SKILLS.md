@@ -1,121 +1,126 @@
-# SKILLS.md — uso de IA en este proyecto (archivo de la candidata)
+# SKILLS.md — Cómo utilicé IA durante este proyecto
 
-Este archivo documenta **cómo se usó inteligencia artificial** (Cursor) para
-construir y entender la solución. Es un entregable de **puntos adicionales**
-de la prueba: evidencia de uso consciente de IA, no de “copiar sin entender”.
+Este documento explica cómo utilicé inteligencia artificial durante el desarrollo de esta prueba técnica. Mi intención es mostrar de forma transparente en qué me apoyé con la IA, qué decisiones tomé yo y cómo validé la solución.
 
-Autora / candidata: cuenta GitHub `Prue1712`  
-Herramienta principal: **Cursor** (asistente de desarrollo basado en IA)  
-Proyecto: `odoo-order-integration`
+**Autora:** GitHub **Prue1712**
+**Herramienta utilizada:** Cursor (asistente de desarrollo basado en IA)
+**Proyecto:** `odoo-order-integration`
 
 ---
 
-## 1) Para qué usé la IA
+# 1. ¿Para qué utilicé la IA?
 
-| Uso | Ejemplo concreto |
-|-----|------------------|
-| Entender el enunciado | Separar “tienda/UI” vs “middleware de integración” |
-| Montar el entorno | Docker, WSL2, Odoo 18, Postgres, venv Python |
-| Diseñar arquitectura | FastAPI + XML-RPC + 2 Postgres + trazabilidad |
-| Generar una primera versión del código base | endpoints, schemas, `order_processor`, `odoo_client` — posteriormente revisada, ajustada y validada durante las pruebas |
-| Documentación de entrega | README, API, diagrama, SQL, Oracle, `AGENTS.md` |
-| Aprender a explicar | ensayos de demo, mapa de archivos, anti-duplicados |
-| Extensiones | campos extra de cliente (`phone`, `mobile`, etc.) |
+Durante el desarrollo utilicé la IA como una herramienta de apoyo para acelerar el aprendizaje y resolver dudas técnicas.
 
----
+La usé para:
 
-## 2) Qué hice YO (no la IA sola)
-
-- Entregar el escenario de negocio y decidir seguir con la prueba.
-- Activar virtualización / WSL / Ubuntu / Docker en la máquina.
-- Crear la base Odoo `odoo18`, instalar **Ventas**, crear producto `PROD-001`.
-- Probar en Swagger: GET estado, GET logs, POST órdenes.
-- Verificar en Odoo las órdenes (`S00001`, `S00002`, `S00003`, …).
-- Preguntar y corregir el modelo mental (“no es una tienda, es un puente”).
-- Pedir y validar campos adicionales del cliente en la ficha de Odoo.
-- Corregir errores encontrados durante las pruebas.
-- Validar la integración extremo a extremo (API → Odoo → logs / SQL).
-- Ajustar la solución hasta cumplir los requerimientos de la prueba.
-- Publicar el repo en GitHub: https://github.com/Prue1712/odoo-order-integration
-
-La IA acelera; **la candidata opera, valida y explica**.
+* Entender mejor el enunciado y definir el alcance de la solución.
+* Configurar el entorno de desarrollo (Docker, WSL2, Odoo 18 y PostgreSQL).
+* Diseñar la arquitectura del proyecto.
+* Generar una primera versión de algunos archivos, que después revisé, adapté y probé.
+* Elaborar la documentación de entrega.
+* Preparar la explicación técnica para la entrevista.
+* Resolver dudas sobre Odoo, FastAPI, XML-RPC y SQL mientras desarrollaba la solución.
 
 ---
 
-## 3) Decisiones técnicas que sí sé defender
+# 2. ¿Qué hice yo?
 
-1. **Middleware fuera de Odoo** — facilita logs, idempotencia y demo.
-2. **XML-RPC** — estándar Odoo, suficiente para la prueba.
-3. **Dos Postgres** — `:5432` Odoo / `:5433` integración (trazabilidad).
-4. **`external_order_id`** — clave de negocio anti-duplicados.
-5. **`client_order_ref`** — deja el ID externo visible en la orden de venta.
-6. **Reintento solo si `failed`** — si `created`, no se vuelve a crear.
+Aunque utilicé IA como apoyo, el desarrollo del proyecto requirió trabajo y validaciones por mi parte.
 
----
+Durante la prueba:
 
-## 4) Metodología de trabajo con IA
+* Configuré el entorno de desarrollo.
+* Instalé Odoo 18 y el módulo de Ventas.
+* Creé la base de datos **odoo18**.
+* Creé los productos utilizados para las pruebas.
+* Probé cada endpoint desde Swagger.
+* Validé que las órdenes realmente se crearan en Odoo.
+* Corregí errores que fueron apareciendo durante el desarrollo.
+* Ajusté la solución hasta cumplir todos los requerimientos de la prueba.
+* Agregué nuevos campos para clientes cuando fue necesario.
+* Revisé las consultas SQL y confirmé que la trazabilidad quedara registrada correctamente.
+* Publiqué el proyecto en GitHub.
 
-1. Pedir explicación en lenguaje simple cuando no entendía.
-2. Pedir cambios pequeños y localizados (un archivo / un campo).
-3. Probar siempre en Swagger + Odoo antes de dar por bueno.
-4. Pedir “dónde tocar si me piden X” para la entrevista.
-5. Mantener archivos propios de estudio: `BITACORA-ESTUDIO.txt`, `EJERCICIOS-ENTREVISTA.txt`, este `SKILLS.md`.
+Durante el desarrollo también cambié mi forma de entender el problema. Al principio pensaba en una aplicación tipo tienda, pero después comprendí que realmente se trataba de construir un middleware de integración entre un sistema externo y Odoo.
 
----
-
-## 5) Habilidades (skills) que practiqué en la prueba
-
-| Skill | Evidencia en el repo |
-|-------|----------------------|
-| Integración API ↔ ERP | `app/services/odoo_client.py`, `order_processor.py` |
-| Validación de datos | `app/schemas/order.py` |
-| Persistencia / SQL | `app/db/*`, `sql/queries.sql` |
-| Diseño de arquitectura | `docs/diagram.md`, `README.md` |
-| Documentar para humanos e IA | `AGENTS.md`, `docs/API.md` |
-| Uso responsable de IA | este archivo + bitácora |
+> La IA me ayudó a avanzar más rápido, pero todas las pruebas, validaciones y decisiones finales las hice yo.
 
 ---
 
-## 6) Cómo crear / actualizar este archivo (para la candidata)
+# 3. Decisiones técnicas que puedo explicar
 
-1. En la raíz del repo crea `SKILLS.md` (este archivo).
-2. Escribe en **tu voz**: qué pediste, qué entendiste, qué probaste.
-3. Actualiza cuando agregues algo nuevo (ej. campos de cliente).
-4. No inventes: solo lo que realmente hiciste.
-5. Sube el cambio a GitHub con el resto de la entrega.
+Durante la entrevista puedo explicar por qué tomé estas decisiones:
 
-Comando mental: *“Si no lo puedo explicar en la entrevista, no va en SKILLS.md.”*
-
----
-
-## 7) Relación con otros archivos
-
-| Archivo | Rol |
-|---------|-----|
-| `AGENTS.md` | Guía para que una IA/persona extienda el proyecto |
-| `SKILLS.md` | Guía de **cómo usé IA** y qué aprendí (este) |
-| `BITACORA-ESTUDIO.txt` | Notas personales de estudio |
-| `EJERCICIOS-ENTREVISTA.txt` | Ensayo oral |
+* Implementar un middleware independiente de Odoo.
+* Utilizar FastAPI para exponer la API.
+* Integrar con Odoo mediante XML-RPC.
+* Mantener una base de datos para Odoo y otra para la trazabilidad de la integración.
+* Utilizar `external_order_id` para evitar órdenes duplicadas.
+* Guardar el identificador externo en `client_order_ref`.
+* Permitir reintentos únicamente cuando una integración terminó con estado **failed**.
 
 ---
 
-## 8) Lecciones aprendidas
+# 4. Cómo trabajé con la IA
 
-Durante el desarrollo reforcé conceptos relacionados con:
+Mientras desarrollaba el proyecto seguí una forma de trabajo sencilla:
 
-- Integración entre sistemas mediante APIs.
-- Consumo de servicios XML-RPC en Odoo.
-- Validación de datos antes de persistir información.
-- Diseño de soluciones desacopladas.
-- Importancia de la trazabilidad e idempotencia en procesos de integración.
-- Documentación técnica orientada tanto a desarrolladores como a herramientas de IA.
+* Pedía explicaciones cuando no entendía algún concepto.
+* Hacía cambios pequeños para comprender qué estaba modificando.
+* Probaba cada cambio antes de continuar.
+* Verificaba el resultado tanto en Swagger como directamente en Odoo.
+* Preguntaba qué archivo debía modificar cuando quería agregar una nueva funcionalidad.
+* Mantuve notas propias para estudiar y preparar la entrevista.
 
 ---
 
-## 9) Nota: esto NO es un “Cursor Skill” de producto
+# 5. Habilidades que reforcé
 
-Cursor también tiene *Agent Skills* (`SKILL.md` en `.cursor/skills/`) para
-automatizar flujos del editor. **Eso es otra cosa.**
+Durante esta prueba practiqué principalmente:
 
-Para la prueba técnica, lo que suman puntos es documentar el uso de IA en el
-proyecto con archivos propios como este `SKILLS.md`.
+* Integración entre APIs y Odoo.
+* Validación de datos.
+* Python.
+* SQL y PostgreSQL.
+* Consumo de XML-RPC.
+* Diseño de una arquitectura de integración.
+* Documentación técnica.
+* Uso responsable de herramientas de IA.
+
+---
+
+# 6. Documentación relacionada
+
+Este proyecto incluye varios documentos que se complementan entre sí:
+
+* **AGENTS.md:** explica cómo funciona la solución y cómo extenderla.
+* **SKILLS.md:** documenta cómo utilicé la IA durante el desarrollo.
+* **BITACORA-ESTUDIO.txt:** contiene mis notas de estudio.
+* **EJERCICIOS-ENTREVISTA.txt:** me ayudó a preparar la explicación del proyecto.
+
+---
+
+# 7. Lo que aprendí
+
+Esta prueba me permitió reforzar conocimientos sobre:
+
+* Integración entre sistemas mediante APIs.
+* Comunicación con Odoo usando XML-RPC.
+* Validación de información antes de crear registros.
+* Diseño de soluciones desacopladas.
+* Importancia de la trazabilidad y de evitar duplicados.
+* Documentación técnica.
+* Uso de inteligencia artificial como una herramienta de apoyo, entendiendo siempre el código y validando el resultado.
+
+---
+
+# 8. Nota
+
+Este archivo no corresponde a los **Agent Skills** propios de Cursor.
+
+Su objetivo es documentar de forma transparente cómo utilicé la inteligencia artificial durante el desarrollo del proyecto y demostrar que comprendo las decisiones técnicas tomadas.
+
+Como regla personal seguí una idea durante toda la prueba:
+
+> **Si no puedo explicarlo durante la entrevista, entonces no hace parte de mi solución.**
