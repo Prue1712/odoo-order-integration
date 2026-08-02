@@ -55,6 +55,11 @@ def _run_odoo_pipeline(db: Session, order: ProcessedOrder, payload: ExternalOrde
                 name=payload.customer.name,
                 email=str(payload.customer.email),
                 vat=payload.customer.vat,
+                phone=payload.customer.phone,
+                mobile=payload.customer.mobile,
+                website=payload.customer.website,
+                job_position=payload.customer.job_position,
+                is_company=payload.customer.is_company,
             )
             repo.add_log(
                 db,

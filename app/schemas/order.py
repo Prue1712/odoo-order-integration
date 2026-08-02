@@ -5,6 +5,12 @@ class CustomerIn(BaseModel):
     name: str = Field(min_length=1)
     email: EmailStr
     vat: str | None = None
+    # Campos opcionales → se mapean a res.partner en Odoo
+    phone: str | None = None
+    mobile: str | None = None
+    website: str | None = None
+    job_position: str | None = None  # Odoo: function (Puesto de trabajo)
+    is_company: bool = False  # True = Empresa, False = Persona
 
 
 class OrderLineIn(BaseModel):

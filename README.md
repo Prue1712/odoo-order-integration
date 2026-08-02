@@ -105,6 +105,7 @@ uvicorn app.main:app --reload --port 8001
 | Consultas SQL | [sql/queries.sql](sql/queries.sql) |
 | Nota Oracle ↔ PostgreSQL | [sql/ORACLE-POSTGRESQL.md](sql/ORACLE-POSTGRESQL.md) |
 | Guía para IA / extensión | [AGENTS.md](AGENTS.md) |
+| Uso de IA (puntos adicionales) | [SKILLS.md](SKILLS.md) |
 
 ## Validaciones cubiertas
 

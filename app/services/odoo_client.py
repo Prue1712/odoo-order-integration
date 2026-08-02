@@ -55,10 +55,35 @@ class OdooClient:
         )
         return partners[0] if partners else None
 
-    def create_partner(self, name: str, email: str, vat: str | None = None) -> int:
-        values: dict[str, Any] = {"name": name, "email": email, "customer_rank": 1}
+    def create_partner(
+        self,
+        name: str,
+        email: str,
+        vat: str | None = None,
+        *,
+        phone: str | None = None,
+        mobile: str | None = None,
+        website: str | None = None,
+        job_position: str | None = None,
+        is_company: bool = False,
+    ) -> int:
+        """Crea res.partner. Los campos opcionales llenan la ficha en Odoo."""
+        values: dict[str, Any] = {
+            "name": name,
+            "email": email,
+            "customer_rank": 1,
+            "is_company": is_company,
+        }
         if vat:
             values["vat"] = vat
+        if phone:
+            values["phone"] = phone
+        if mobile:
+            values["mobile"] = mobile
+        if website:
+            values["website"] = website
+        if job_position:
+            values["function"] = job_position  # en Odoo el puesto se llama function
         return int(self._execute("res.partner", "create", [values]))
 
     def find_product_by_sku(self, sku: str) -> dict[str, Any] | None:

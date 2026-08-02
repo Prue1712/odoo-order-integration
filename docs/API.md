@@ -34,7 +34,12 @@ Recibe una orden externa, la valida, evita duplicados y crea `sale.order` en Odo
   "customer": {
     "name": "Distribuidora Andina",
     "email": "compras@andina.example",
-    "vat": "900123456"
+    "vat": "900123456",
+    "phone": "6011234567",
+    "mobile": "3001234567",
+    "website": "https://andina.example",
+    "job_position": "Compras",
+    "is_company": true
   },
   "lines": [
     {
