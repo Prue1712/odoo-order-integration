@@ -1,0 +1,112 @@
+================================================================================
+EJERCICIOS PARA EXPLICAR (ensayar en voz alta, 20–40 min)
+Proyecto: odoo-order-integration
+Para mañana: terminar SQL + diagrama + docs + GitHub
+================================================================================
+
+Cómo practicar:
+  1) Lee la pregunta
+  2) Responde EN VOZ ALTA (1 minuto)
+  3) Si te trabas, mira la pista (abajo)
+  4) No memorices texto: memoriza IDEAS
+
+
+--------------------------------------------------------------------------------
+BLOQUE A — Explicar el proyecto (obligatorio)
+--------------------------------------------------------------------------------
+
+A1. En 60 segundos: ¿qué problema resuelve tu solución?
+    Pista: pedidos externos → validar → crear sale order en Odoo → trazabilidad
+           sin duplicar.
+
+A2. ¿Por qué no metiste toda la lógica solo dentro de Odoo?
+    Pista: middleware separa sistemas, facilita logs, idempotencia y demo.
+
+A3. Dibuja (o describe) el flujo con 5 cajas.
+    Pista: Externo → API → Validación → Odoo / Postgres integración.
+
+A4. ¿Para qué tienes DOS Postgres (5432 y 5433)?
+    Pista: 5432 = datos Odoo; 5433 = logs/estados de integración.
+
+
+--------------------------------------------------------------------------------
+BLOQUE B — “Si te piden cambiar código” (muy probable)
+--------------------------------------------------------------------------------
+
+B1. “Exige que el precio sea mayor que 0.”
+    ¿Qué archivo tocas? ¿Cómo lo pruebas?
+    Pista: schemas/order.py → POST con price 0 debe fallar.
+
+B2. “Busca el cliente por VAT/NIT, no solo por email.”
+    ¿Qué archivos?
+    Pista: odoo_client.py (+ order_processor.py).
+
+B3. “Si la orden ya se creó, no la vuelvas a crear; si falló, reintenta.”
+    ¿Dónde está eso?
+    Pista: order_processor.py (status created vs failed).
+
+B4. “Al crear la orden, confírmala automáticamente.”
+    ¿Dónde?
+    Pista: odoo_client.py después del create (action_confirm).
+
+B5. “Agrega un endpoint que diga cuántas órdenes created/failed.”
+    ¿Dónde?
+    Pista: routes + repository/SQL.
+
+
+--------------------------------------------------------------------------------
+BLOQUE C — Preguntas difíciles (respuesta corta)
+--------------------------------------------------------------------------------
+
+C1. ¿Qué es idempotencia aquí?
+    Pista: mismo external_order_id no crea dos sale.order.
+
+C2. ¿Qué pasa si un SKU no existe?
+    Pista: status failed, no se crea orden a medias, queda log.
+
+C3. ¿XML-RPC o REST para Odoo? ¿Por qué elegiste XML-RPC?
+    Pista: estándar, simple, suficiente para la prueba.
+
+C4. ¿Qué harías en producción que hoy no hiciste?
+    Pista: cola, reintentos, auth API, alertas, tests automatizados.
+
+C5. Oracle vs PostgreSQL: ¿cómo compararías datos?
+    Pista: misma clave de negocio (external_order_id), staging, FULL OUTER JOIN
+           / ETL, no copiar IDs internos a ciegas.
+
+
+--------------------------------------------------------------------------------
+BLOQUE D — Demo en voz alta (ensayar con el PC)
+--------------------------------------------------------------------------------
+
+D1. Abre http://localhost:8001/docs y narra un POST exitoso.
+D2. Abre Odoo → Ventas → Órdenes → muestra S00001 / EXT-1006.
+D3. Llama GET .../EXT-1006/logs y explica 2 pasos del log.
+D4. Repite el mismo ID y explica el anti-duplicado.
+
+
+--------------------------------------------------------------------------------
+RÚBRICA RÁPIDA (autoevalúate 1–5)
+--------------------------------------------------------------------------------
+
+[ ] Explico el negocio sin leer
+[ ] Sé qué archivo tocar para 3 cambios distintos
+[ ] Hablo de duplicados y trazabilidad con seguridad
+[ ] La demo me sale sin ponerme nervioso
+[ ] Puedo decir 2 mejoras de producción
+
+Meta mañana: terminar entregables + ensayar A1, B1, B3, C1, D1–D4.
+
+
+--------------------------------------------------------------------------------
+PLAN MAÑANA (orden sugerido)
+--------------------------------------------------------------------------------
+
+1) sql/queries.sql + nota Oracle
+2) diagrama (docs/diagram.md)
+3) README + docs/API.md + AGENTS.md
+4) (opcional) /stats
+5) GitHub
+6) Ensayo de demo 1 vez completa
+
+================================================================================

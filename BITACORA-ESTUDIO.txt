@@ -1,0 +1,386 @@
+================================================================================
+BITÁCORA DE ESTUDIO — Prueba técnica Odoo 18 / SQL / Python / APIs
+Proyecto: C:\Users\danny\odoo-order-integration
+Última actualización: 2026-08-01 (noche — Ventas instalada)
+================================================================================
+
+Este archivo es para REPASAR y EXPLICAR en la entrevista.
+Se irá actualizando conforme avancemos.
+
+
+--------------------------------------------------------------------------------
+1) QUÉ PIDE LA PRUEBA (RESUMEN)
+--------------------------------------------------------------------------------
+
+Escenario:
+  Empresa B2B tiene clientes y productos en Odoo.
+  Los pedidos llegan desde una plataforma externa.
+  Hay que crear órdenes de venta en Odoo con trazabilidad.
+
+La solución debe:
+  - Recibir órdenes por API
+  - Validar cliente (crear o asociar)
+  - Validar productos
+  - Crear sale order si todo es válido
+  - Guardar identificador externo
+  - Evitar duplicados
+  - Registrar trazabilidad de cada intento
+  - Consultar estado de una orden externa
+  - Incluir consultas SQL
+  - Explicar Oracle ↔ PostgreSQL (solo explicación)
+  - Diagrama + docs + AGENTS.md + repo GitHub
+
+Stack obligatorio: Odoo + Python + SQL + APIs + base relacional.
+
+
+--------------------------------------------------------------------------------
+2) ARQUITECTURA QUE VAMOS A ENTREGAR
+--------------------------------------------------------------------------------
+
+  Sistema externo
+        |
+        |  POST /api/v1/orders  (JSON)
+        v
+  API Python (FastAPI)     ← middleware / integración
+        |
+        +---> Validaciones (cliente, productos, cantidades, precios, duplicados)
+        |
+        +---> Odoo 18 (XML-RPC)  → crea partner / sale.order
+        |
+        +---> PostgreSQL propio  → processed_orders + integration_logs
+
+
+Por qué un middleware (y no solo un módulo Odoo):
+  - Separa el sistema externo de Odoo
+  - Facilita validar, loguear y evitar duplicados
+  - Es más fácil de explicar y demostrar en una prueba
+
+
+--------------------------------------------------------------------------------
+3) QUÉ YA HICIMOS (HASTA AHORA)
+--------------------------------------------------------------------------------
+
+[x] Instalar herramientas base: Python, Git, Docker Desktop
+[x] Crear carpeta del proyecto: odoo-order-integration
+[x] Crear docker-compose.yml con Odoo 18 + PostgreSQL
+[x] Resolver virtualización en BIOS (Aspire A515-55)
+[x] Instalar WSL2 + Ubuntu
+[x] Levantar Docker Engine (verde)
+[x] Bajar y arrancar contenedores Odoo 18 + Postgres
+[x] Corregir healthcheck de Postgres
+[x] Crear base de datos dentro de Odoo (pantalla web)
+[x] Instalar app Ventas / Sales
+[x] Crear productos de prueba con SKU
+[x] Crear API FastAPI (código base listo)
+[x] Conectar API ↔ Odoo (cliente XML-RPC)
+[x] Tablas de trazabilidad (processed_orders + integration_logs)
+[x] Probar API con curl/Postman   ← HECHO (EXT-1006 → S00001 en Odoo)
+[ ] Consultas SQL de análisis + nota Oracle   ← SIGUIENTE
+[ ] Diagrama, docs, AGENTS.md
+[ ] Subir a GitHub
+
+DEMO EXITOSA:
+  POST http://localhost:8001/api/v1/orders
+  external_order_id = EXT-1006
+  Resultado en Odoo = orden S00001 (draft)
+  API docs = http://localhost:8001/docs
+  Odoo UI  = http://localhost:8069
+
+NOTA: usar puerto 8001 (el 8000 quedó con proceso viejo).
+
+
+
+--------------------------------------------------------------------------------
+4) PROBLEMAS QUE TUVIMOS Y CÓMO LOS RESOLVIMOS
+--------------------------------------------------------------------------------
+
+PROBLEMA A — Docker decía "Virtualization support not detected"
+  Causa:
+    La virtualización de la CPU no estaba usable / Docker no podía
+    crear su motor Linux.
+  Solución:
+    En BIOS del Aspire A515-55 (tecla F2 al encender):
+      Intel Virtualization Technology = Enabled
+      Guardar con F10.
+
+PROBLEMA B — WSL no estaba instalado / sin distribución
+  Causa:
+    Docker Desktop moderno en Windows necesita WSL2 + una distro Linux.
+  Solución:
+    En PowerShell como Administrador:
+      wsl --install
+      wsl --install -d Ubuntu
+    Crear usuario Linux (danny) y contraseña.
+
+PROBLEMA C — Postgres marcaba "unhealthy" y Odoo no arrancaba
+  Causa:
+    El healthcheck usaba: pg_isready -U odoo
+    Eso intenta conectar a una base llamada "odoo" (mismo nombre del usuario).
+    Esa base todavía no existía.
+  Solución:
+    Cambiar healthcheck a:
+      pg_isready -U odoo -d postgres
+    Luego: docker compose up -d
+
+
+--------------------------------------------------------------------------------
+5) CÓMO EXPLICAR LA INFRA (FRASES PARA LA ENTREVISTA)
+--------------------------------------------------------------------------------
+
+"Usé Docker Compose para tener una demo reproducible de Odoo 18 y PostgreSQL."
+
+"En Windows el bloqueo inicial no era Odoo: era virtualización + WSL2.
+ Resolví BIOS, instalé Ubuntu WSL y recién ahí Docker pudo levantar el engine."
+
+"Hay dos contenedores: uno Postgres (datos de Odoo) y uno Odoo 18
+ (aplicación web en el puerto 8069)."
+
+"No instalé Odoo a mano dentro de Ubuntu. Ubuntu solo sirve de backend
+ para Docker Desktop."
+
+
+--------------------------------------------------------------------------------
+6) COMANDOS QUE DEBES SABER
+--------------------------------------------------------------------------------
+
+Ir al proyecto:
+  cd C:\Users\danny\odoo-order-integration
+
+Levantar Odoo + Postgres:
+  docker compose up -d
+
+Ver estado:
+  docker compose ps
+
+Ver logs de Odoo:
+  docker logs odoo_app --tail 50
+
+Ver logs de Postgres:
+  docker logs odoo_postgres --tail 50
+
+Parar todo:
+  docker compose down
+
+Abrir Odoo en el navegador:
+  http://localhost:8069
+
+Verificar WSL:
+  wsl -l -v
+
+Verificar Docker:
+  docker version
+
+
+NOTA PATH (si docker/git no se reconocen en una terminal nueva):
+  $env:Path = "C:\Users\danny\AppData\Local\Programs\DockerDesktop\resources\bin;C:\Program Files\Git\bin;C:\Program Files\Git\cmd;" + $env:Path
+
+
+--------------------------------------------------------------------------------
+7) ARCHIVOS IMPORTANTES DEL PROYECTO (HOY)
+--------------------------------------------------------------------------------
+
+docker-compose.yml
+  - Define servicios odoo-db (Postgres 16) y odoo (odoo:18.0)
+  - Puertos: 5432 (Postgres), 8069 (Odoo)
+  - Credenciales DB: usuario odoo / password odoo
+
+README.md
+  - Instrucciones básicas para levantar y crear la base
+
+BITACORA-ESTUDIO.txt  (este archivo)
+  - Para estudiar y explicar
+
+
+--------------------------------------------------------------------------------
+8) CÓMO ESTÁ ARMADA LA API (EXPLICACIÓN PARA LA ENTREVISTA)
+--------------------------------------------------------------------------------
+
+Idea: la API es un "middleware". No reemplaza a Odoo; orquesta.
+
+CAPAS (de afuera hacia adentro):
+
+1) app/api/routes_orders.py
+   - Endpoints HTTP
+   - POST /api/v1/orders
+   - GET  /api/v1/orders/{external_order_id}
+   - GET  /api/v1/orders/{external_order_id}/logs
+
+2) app/schemas/order.py
+   - Valida el JSON de entrada con Pydantic
+   - Rechaza quantity <= 0, price < 0, sin líneas, sin email, etc.
+
+3) app/services/order_processor.py
+   - Cerebro del negocio:
+     a) ¿Ya existe external_order_id? → no duplicar
+     b) Buscar/crear cliente en Odoo
+     c) Validar SKUs (PROD-001...)
+     d) Crear sale.order
+     e) Guardar logs de cada paso
+
+4) app/services/odoo_client.py
+   - Habla con Odoo por XML-RPC
+   - authenticate / search / create partner / product / sale.order
+   - Guarda el ID externo en client_order_ref
+
+5) app/db/*
+   - PostgreSQL propio (puerto 5433), separado del de Odoo (5432)
+   - processed_orders  → estado final / anti-duplicado
+   - integration_logs  → trazabilidad paso a paso
+
+POR QUÉ DOS POSTGRES:
+  - 5432 = datos de Odoo (clientes, productos, ventas)
+  - 5433 = datos de la integración (logs, estados, idempotencia)
+  Así no mezclamos responsabilidades y es fácil hacer SQL de análisis.
+
+CÓMO CORRER LA API:
+  cd C:\Users\danny\odoo-order-integration
+  docker compose up -d
+
+  # Opción A (recomendada en Windows si Activate.ps1 falla):
+  .\.venv\Scripts\uvicorn.exe app.main:app --reload --port 8000
+
+  # Opción B (si quieres activar el venv):
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  .\.venv\Scripts\Activate.ps1
+  uvicorn app.main:app --reload --port 8000
+
+  Docs automáticas: http://localhost:8000/docs
+  Health:          http://localhost:8000/health
+
+PROBLEMA D — "ejecución de scripts está deshabilitada" (Activate.ps1)
+  Causa: política de seguridad de PowerShell en Windows.
+  Solución rápida: no uses Activate; llama directo:
+    .\.venv\Scripts\uvicorn.exe app.main:app --reload --port 8000
+  O solo para esa ventana:
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+
+IMPORTANTE:
+  En el archivo .env debe coincidir:
+    ODOO_DB=nombre_exacto_de_tu_base_en_Odoo
+    ODOO_USER / ODOO_PASSWORD = el login con el que entras a Odoo
+
+--------------------------------------------------------------------------------
+8b) DATOS QUE USAREMOS EN LA DEMO (API)
+--------------------------------------------------------------------------------
+
+JSON de ejemplo:
+
+{
+  "external_order_id": "EXT-1001",
+  "customer": {
+    "name": "Cliente Demo SAS",
+    "email": "demo@cliente.com"
+  },
+  "lines": [
+    { "sku": "PROD-001", "quantity": 5, "price": 25.50 },
+    { "sku": "PROD-002", "quantity": 2, "price": 10.00 }
+  ]
+}
+
+--------------------------------------------------------------------------------
+8c) SIGUIENTE PASO PRÁCTICO
+--------------------------------------------------------------------------------
+
+1) Confirmar que en .env el ODOO_DB y password son correctos
+2) docker compose up -d
+3) Activar venv y levantar uvicorn
+4) Probar POST en /docs
+5) Verificar la orden en Odoo → Ventas → Órdenes
+
+Después: SQL de análisis + diagrama + AGENTS.md + GitHub
+
+
+
+--------------------------------------------------------------------------------
+9) GUION CORTO (1 MINUTO)
+--------------------------------------------------------------------------------
+
+1. Negocio: pedidos externos deben crear órdenes en Odoo con trazabilidad
+   y sin duplicados.
+2. Enfoque: middleware Python + Odoo como sistema de ventas.
+3. Infra: Docker Compose con Odoo 18 y PostgreSQL.
+4. Bloqueo Windows: virtualización/WSL2; se resolvió y la demo levantó.
+5. Siguiente: API FastAPI + XML-RPC a Odoo + tablas SQL de integración.
+
+
+--------------------------------------------------------------------------------
+10) HISTORIAL DE AVANCES (CRONOLÓGICO)
+--------------------------------------------------------------------------------
+
+2026-08-01
+  - Se explicó la prueba y el plan por fases.
+  - Se instalaron/verificaron Python, Git, Docker.
+  - Docker falló por virtualización; se diagnosticó Aspire A515-55.
+  - Se activó VT-x en BIOS; aún faltaba WSL.
+  - Se instaló WSL2 + Ubuntu (usuario danny).
+  - Docker Engine quedó en verde (Client + Server OK).
+  - Se actualizó compose a odoo:18.0 (no 17).
+  - Se corrigió healthcheck de Postgres.
+  - Odoo 18 quedó corriendo en http://localhost:8069
+  - Se creó la base en la UI e instaló Ventas / Sales
+  - Se crearon productos PROD-001 / PROD-002
+  - Se creó la API FastAPI por capas (schemas, db, odoo_client, processor, routes)
+  - Se agregó Postgres de integración en puerto 5433
+  - DEMO EXITOSA: EXT-1006 → S00001
+  - Pausado para continuar MAÑANA TEMPRANO:
+      entregables (SQL, diagrama, docs, AGENTS.md, GitHub)
+      + ensayar EJERCICIOS-ENTREVISTA.txt
+
+--------------------------------------------------------------------------------
+11) SI ME PIDEN CAMBIAR CÓDIGO EN LA ENTREVISTA (MAPA RÁPIDO)
+--------------------------------------------------------------------------------
+
+REGLA DE ORO:
+  1) Escucha el cambio de negocio
+  2) Di EN VOZ ALTA qué archivo tocarás y por qué
+  3) Cambias POCO
+  4) Pruebas en /docs
+  5) Muestras resultado en Odoo o en /logs
+
+MAPA: "si me piden X → toco Y"
+
+  Validar un campo nuevo del JSON
+    → app/schemas/order.py
+
+  Cambiar regla (ej: price > 0 en vez de >= 0)
+    → app/schemas/order.py
+
+  Cambiar lógica de duplicados / reintentos
+    → app/services/order_processor.py
+
+  Buscar cliente por VAT en vez de email
+    → app/services/odoo_client.py  (find_partner...)
+    → y el if en order_processor.py
+
+  Crear la orden confirmada (no draft)
+    → app/services/odoo_client.py  (después de create, action_confirm)
+
+  Cambiar cómo se guarda el ID externo
+    → odoo_client.create_sale_order (client_order_ref)
+
+  Nuevo endpoint (ej. estadísticas)
+    → app/api/routes_orders.py  (+ main si hace falta)
+
+  Credenciales Odoo
+    → archivo .env  (luego reiniciar API)
+
+  Tablas / logs
+    → app/db/models.py + repository.py
+
+CÓMO HABLAR MIENTRAS CAMBIAS (suena senior):
+  "Eso es regla de entrada → schemas.
+   Si es orquestación de negocio → processor.
+   Si es cómo hablar con Odoo → odoo_client.
+   Así mantengo las capas separadas."
+
+DEMO MÍNIMA DESPUÉS DE CUALQUIER CAMBIO:
+  1) POST orden nueva (EXT-xxxx)
+  2) GET .../logs
+  3) Ver orden en Odoo
+  4) Si aplica: repetir ID para duplicado
+
+SI TE TRAVAN:
+  Di: "Primero ubico la capa correcta; no mezclo validación con XML-RPC."
+  Abre BITACORA + estructura de carpetas y navega con seguridad.
+
